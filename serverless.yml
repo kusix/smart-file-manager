@@ -1,0 +1,112 @@
+service: smart-file-manager
+frameworkVersion: '3'  # 明确指定框架版本
+
+custom:
+  logging:
+    level: DEBUG
+    retention: 14
+    formatType: json
+
+provider:
+  name: aws
+  runtime: java17
+  region: ap-southeast-2
+  stage: dev
+  memorySize: 512
+  timeout: 60
+  iam:
+    role:
+      managedPolicies:
+        - arn:aws:iam::aws:policy/AWSLambda_FullAccess
+        - arn:aws:iam::aws:policy/AmazonS3FullAccess
+        - arn:aws:iam::aws:policy/AmazonDynamoDBFullAccess
+      statements:
+        # S3 权限
+        - Effect: Allow
+          Action:
+            - s3:PutObject
+            - s3:GetObject
+          Resource:
+            - "arn:aws:s3:::smart-file-manager-bucket/*"
+        # DynamoDB 权限
+        - Effect: Allow
+          Action:
+            - dynamodb:PutItem
+            - dynamodb:GetItem
+          Resource:
+            - "arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/FileMetadata"
+
+functions:
+  upload:
+    handler: com.example.handler.FileUploadHandler::handleRequest
+    events:
+      - httpApi:
+          path: /upload
+          method: PUT
+    environment:
+      FILES_BUCKET: smart-file-manager-bucket
+      METADATA_TABLE: FileMetadata
+    package:
+      artifact: build/distributions/smart-file-manager-lambda.zip
+
+  download:
+    handler: com.example.handler.FileDownloadHandler::handleRequest
+    events:
+      - httpApi:
+          path: /download/{fileId}
+          method: GET
+    environment:
+      FILES_BUCKET: smart-file-manager-bucket
+      METADATA_TABLE: FileMetadata
+    package:
+      artifact: build/distributions/smart-file-manager-lambda.zip
+
+package:
+  individually: true
+  exclude:
+    - ./**
+  include:
+    - smart-file-manager.jar
+
+# 关键修复点：确保资源定义在正确的层级
+resources:
+  Resources:
+    # 自定义 DynamoDB 表
+    FileMetadataTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: FileMetadata
+        AttributeDefinitions:
+          - AttributeName: fileId
+            AttributeType: S
+        KeySchema:
+          - AttributeName: fileId
+            KeyType: HASH
+        BillingMode: PAY_PER_REQUEST
+        SSESpecification:
+          SSEEnabled: true
+
+    # 自定义 S3 存储桶（非部署桶）
+    SmartFileManagerBucket:
+      Type: AWS::S3::Bucket
+      Properties:
+        BucketName: smart-file-manager-bucket
+        AccessControl: Private
+        VersioningConfiguration:
+          Status: Enabled
+        LifecycleConfiguration:
+          Rules:
+            - Id: DeleteOldFiles
+              Status: Enabled
+              ExpirationInDays: 30
+
+# 输出资源信息
+outputs:
+  FileMetadataTableName:
+    Description: "DynamoDB Table Name for File Metadata"
+    Value:
+      Ref: FileMetadataTable
+  SmartFileManagerBucketName:
+    Description: "S3 Bucket Name for File Storage"
+    Value:
+      Ref: SmartFileManagerBucket

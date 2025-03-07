@@ -1,0 +1,18 @@
+sequenceDiagram
+    participant User as User
+    participant API as API Gateway
+    participant Lambda as FileProcessor
+    participant S3 as S3 Bucket
+    participant DDB as DynamoDB
+
+    User->>API: upload file(PUT /upload)
+    API->>Lambda: invoke process
+    Lambda->>S3: store original file
+    Lambda->>DDB: store meta-data
+    Lambda-->>User: return file ID
+
+    User->>API: download file(GET /download/{fileId})
+    API->>Lambda: request file URL
+    Lambda->>DDB: fetch meta-data
+    Lambda->>S3: generate pre-sign URL
+    Lambda-->>User: return URL
