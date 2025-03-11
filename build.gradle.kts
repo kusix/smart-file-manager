@@ -7,6 +7,7 @@ repositories {
 }
 
 dependencies {
+
     // AWS SDK v2
     implementation("software.amazon.awssdk:s3:2.20.135")
     implementation("software.amazon.awssdk:dynamodb:2.20.135")
@@ -19,8 +20,12 @@ dependencies {
     // JSON 处理
     implementation("com.google.code.gson:gson:2.10.1")
 
-    // 测试依赖
-    testImplementation("junit:junit:4.13.2")
+    // JUnit 5
+    testImplementation("org.junit.jupiter:junit-jupiter-api:5.9.0")
+    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.9.0")
+
+    // Mockito for mocking
+    testImplementation("org.mockito:mockito-core:4.11.0")
 }
 
 java {
@@ -50,4 +55,8 @@ tasks.register<Zip>("packageLambda") {
 // 将 packageLambda 任务绑定到 build 任务
 tasks.named("build") {
     dependsOn("packageLambda")
+}
+
+tasks.test {
+    useJUnitPlatform()
 }

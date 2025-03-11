@@ -19,11 +19,16 @@ import java.util.UUID;
 
 public class FileUploadHandler implements RequestHandler<APIGatewayProxyRequestEvent, APIGatewayProxyResponseEvent> {
 
-    private final S3Client s3 = S3Client.create();
-    private final DynamoDbClient ddb = DynamoDbClient.create();
+    private S3Client s3 = S3Client.create();
+    private DynamoDbClient ddb = DynamoDbClient.create();
 
     public FileUploadHandler() {
         System.out.println("FileUploadHandler loaded！");
+    }
+
+    public FileUploadHandler(S3Client s3Client, DynamoDbClient dynamoDbClient) {
+        this.ddb = dynamoDbClient;
+        this.s3 = s3Client;
     }
 
     @Override

@@ -19,11 +19,16 @@ import java.util.Map;
 
 public class FileDownloadHandler implements RequestHandler<APIGatewayProxyRequestEvent, APIGatewayProxyResponseEvent> {
 
-    private final DynamoDbClient dynamoDbClient = DynamoDbClient.create();
-    private final S3Presigner s3Presigner = S3Presigner.create();
+    private DynamoDbClient ddb = DynamoDbClient.create();
+    private S3Presigner s3Presigner = S3Presigner.create();
 
     public FileDownloadHandler() {
         System.out.println("FileDownloadHandler loaded！");
+    }
+
+    public FileDownloadHandler(DynamoDbClient dynamoDbClient, S3Presigner s3Presigner) {
+        this.ddb = dynamoDbClient;
+        this.s3Presigner = s3Presigner;
     }
 
     @Override
@@ -65,7 +70,7 @@ public class FileDownloadHandler implements RequestHandler<APIGatewayProxyReques
                 .build();
 
         // 执行查询
-        GetItemResponse response = dynamoDbClient.getItem(getItemRequest);
+        GetItemResponse response = ddb.getItem(getItemRequest);
 
         // 返回文件名
         if (response.hasItem()) {
