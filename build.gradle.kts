@@ -26,6 +26,7 @@ dependencies {
 
     // Mockito for mocking
     testImplementation("org.mockito:mockito-core:4.11.0")
+    testImplementation("org.mockito:mockito-junit-jupiter:4.11.0")
 }
 
 java {

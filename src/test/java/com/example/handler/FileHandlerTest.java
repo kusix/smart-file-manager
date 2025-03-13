@@ -5,8 +5,10 @@ import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyRequestEvent;
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyResponseEvent;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.GetItemRequest;
@@ -25,6 +27,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
+@ExtendWith(MockitoExtension.class)
 class FileHandlerTest {
 
     @Mock
@@ -39,14 +42,15 @@ class FileHandlerTest {
     @Mock
     private Context context;
 
+    @InjectMocks
     private FileUploadHandler fileUploadHandler;
+
+    @InjectMocks
     private FileDownloadHandler fileDownloadHandler;
 
     @BeforeEach
     void setUp() {
-        MockitoAnnotations.openMocks(this);
-        fileUploadHandler = new FileUploadHandler(s3Client, dynamoDbClient);
-        fileDownloadHandler = new FileDownloadHandler(dynamoDbClient, s3Presigner);
+
     }
 
     @Test
